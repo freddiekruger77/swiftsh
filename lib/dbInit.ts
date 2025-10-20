@@ -75,6 +75,14 @@ const seedSampleData = async (): Promise<void> => {
         destination: 'Phoenix, AZ',
         customerName: 'Charlie Wilson',
         customerEmail: 'charlie.wilson@example.com'
+      },
+      {
+        trackingNumber: 'SW240567MXC',
+        status: 'in_transit',
+        currentLocation: 'Mexico City Distribution Center',
+        destination: 'Captain Carlos León Avenue, s/n, Peñón de los Baños Area, Venustiano Carranza Municipality, 15620, Mexico City, Mexico',
+        customerName: 'Leovarda Franco Hesiquio',
+        estimatedDelivery: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000) // 2 days from now
       }
     ]
     
@@ -157,27 +165,250 @@ const createStatusHistory = async (packageId: string, currentStatus: string): Pr
   }
 }
 
-// Database health check
+// Enhanced database health check with comprehensive testing
 export const checkDatabaseHealth = async (): Promise<boolean> => {
   try {
-    const { getDatabase } = await import('./db')
-    const db = await getDatabase()
-    
-    // Simple query to check if database is accessible
-    return new Promise((resolve) => {
-      db.get('SELECT 1 as test', (err, row) => {
-        if (err) {
-          console.error('Database health check failed:', err)
-          resolve(false)
-        } else {
-          console.log('Database health check passed')
-          resolve(true)
-        }
-      })
-    })
+    const healthResult = await checkDatabaseHealthDetailed()
+    return healthResult.healthy
   } catch (error) {
     console.error('Database health check error:', error)
     return false
+  }
+}
+
+// Comprehensive database health check with timeout and retry logic
+export const checkDatabaseHealthWithRetry = async (maxRetries: number = 3): Promise<boolean> => {
+  let attempt = 1
+  
+  while (attempt <= maxRetries) {
+    try {
+      console.log(`Database health check attempt ${attempt}/${maxRetries}`)
+      
+      const healthResult = await checkDatabaseHealthDetailed()
+      
+      if (healthResult.healthy) {
+        console.log(`Database health check passed on attempt ${attempt}`)
+        return true
+      } else {
+        console.warn(`Database health check failed on attempt ${attempt}:`, healthResult.error || 'Unknown issue')
+        
+        if (attempt < maxRetries) {
+          const delay = Math.pow(2, attempt - 1) * 1000 // Exponential backoff
+          console.log(`Retrying health check in ${delay}ms...`)
+          await new Promise(resolve => setTimeout(resolve, delay))
+        }
+      }
+    } catch (error) {
+      console.error(`Database health check attempt ${attempt} threw error:`, error)
+      
+      if (attempt < maxRetries) {
+        const delay = Math.pow(2, attempt - 1) * 1000
+        console.log(`Retrying health check in ${delay}ms...`)
+        await new Promise(resolve => setTimeout(resolve, delay))
+      }
+    }
+    
+    attempt++
+  }
+  
+  console.error(`Database health check failed after ${maxRetries} attempts`)
+  return false
+}
+
+// Enhanced database health check with comprehensive diagnostics
+export const checkDatabaseHealthDetailed = async (): Promise<{
+  healthy: boolean
+  connectionTime: number
+  tablesExist: boolean
+  canWrite: boolean
+  canRead: boolean
+  indexesExist: boolean
+  diskSpace?: number
+  error?: string
+  details: {
+    basicConnectivity: boolean
+    tableCount: number
+    indexCount: number
+    lastError?: string
+  }
+}> => {
+  const startTime = Date.now()
+  const details = {
+    basicConnectivity: false,
+    tableCount: 0,
+    indexCount: 0,
+    lastError: undefined as string | undefined
+  }
+  
+  try {
+    // Add timeout wrapper for the entire health check
+    const healthCheckPromise = performHealthCheck(details)
+    const timeoutPromise = new Promise<any>((_, reject) => {
+      setTimeout(() => {
+        reject(new Error('Health check timeout (30 seconds)'))
+      }, 30000)
+    })
+
+    const result = await Promise.race([healthCheckPromise, timeoutPromise])
+    
+    return {
+      ...result,
+      connectionTime: Date.now() - startTime,
+      details
+    }
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+    details.lastError = errorMessage
+    
+    return {
+      healthy: false,
+      connectionTime: Date.now() - startTime,
+      tablesExist: false,
+      canWrite: false,
+      canRead: false,
+      indexesExist: false,
+      error: errorMessage,
+      details
+    }
+  }
+}
+
+// Perform comprehensive health check operations
+const performHealthCheck = async (details: any) => {
+  const { getDatabase } = await import('./db')
+  const db = await getDatabase()
+  
+  // Test 1: Basic connectivity
+  const basicTest = await new Promise<boolean>((resolve) => {
+    const timeout = setTimeout(() => resolve(false), 5000) // 5 second timeout for basic test
+    
+    db.get('SELECT 1 as test', (err) => {
+      clearTimeout(timeout)
+      const success = !err
+      details.basicConnectivity = success
+      if (err) details.lastError = err.message
+      resolve(success)
+    })
+  })
+
+  if (!basicTest) {
+    return {
+      healthy: false,
+      tablesExist: false,
+      canWrite: false,
+      canRead: false,
+      indexesExist: false,
+      error: 'Basic connectivity test failed'
+    }
+  }
+
+  // Test 2: Check table existence and count
+  const tableInfo = await new Promise<{ exists: boolean; count: number }>((resolve) => {
+    db.get(
+      "SELECT COUNT(*) as count FROM sqlite_master WHERE type='table' AND name IN ('packages', 'status_updates', 'contact_submissions')",
+      (err, row: any) => {
+        if (err) {
+          details.lastError = err.message
+          resolve({ exists: false, count: 0 })
+        } else {
+          const count = row?.count || 0
+          details.tableCount = count
+          resolve({ exists: count === 3, count })
+        }
+      }
+    )
+  })
+
+  // Test 3: Check index existence
+  const indexInfo = await new Promise<{ exists: boolean; count: number }>((resolve) => {
+    db.get(
+      "SELECT COUNT(*) as count FROM sqlite_master WHERE type='index' AND name LIKE 'idx_%'",
+      (err, row: any) => {
+        if (err) {
+          details.lastError = err.message
+          resolve({ exists: false, count: 0 })
+        } else {
+          const count = row?.count || 0
+          details.indexCount = count
+          resolve({ exists: count >= 4, count }) // We expect at least 4 indexes
+        }
+      }
+    )
+  })
+
+  // Test 4: Read capability
+  const canRead = await new Promise<boolean>((resolve) => {
+    if (!tableInfo.exists) {
+      resolve(false)
+      return
+    }
+    
+    db.get('SELECT COUNT(*) as count FROM packages LIMIT 1', (err) => {
+      if (err) details.lastError = err.message
+      resolve(!err)
+    })
+  })
+
+  // Test 5: Write capability
+  const canWrite = await new Promise<boolean>((resolve) => {
+    const testId = `health_test_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+    
+    db.run('CREATE TEMP TABLE IF NOT EXISTS health_test (id TEXT, created_at TEXT)', (createErr) => {
+      if (createErr) {
+        details.lastError = createErr.message
+        resolve(false)
+        return
+      }
+      
+      const timestamp = new Date().toISOString()
+      db.run('INSERT INTO health_test (id, created_at) VALUES (?, ?)', [testId, timestamp], (insertErr) => {
+        if (insertErr) {
+          details.lastError = insertErr.message
+          resolve(false)
+          return
+        }
+        
+        db.get('SELECT id FROM health_test WHERE id = ?', [testId], (selectErr, row) => {
+          if (selectErr) {
+            details.lastError = selectErr.message
+            resolve(false)
+            return
+          }
+          
+          db.run('DELETE FROM health_test WHERE id = ?', [testId], (deleteErr) => {
+            if (deleteErr) {
+              details.lastError = deleteErr.message
+              resolve(false)
+            } else {
+              resolve(true)
+            }
+          })
+        })
+      })
+    })
+  })
+
+  // Test 6: Check available disk space (if possible)
+  let diskSpace: number | undefined
+  try {
+    const fs = await import('fs')
+    const dbPath = process.env.DATABASE_PATH || '/tmp/swiftship.db'
+    const stats = fs.statSync(dbPath)
+    diskSpace = stats.size
+  } catch (error) {
+    // Disk space check is optional
+  }
+
+  const healthy = basicTest && tableInfo.exists && canRead && canWrite && indexInfo.exists
+
+  return {
+    healthy,
+    tablesExist: tableInfo.exists,
+    canWrite,
+    canRead,
+    indexesExist: indexInfo.exists,
+    diskSpace,
+    error: healthy ? undefined : (details.lastError || 'One or more health checks failed')
   }
 }
 

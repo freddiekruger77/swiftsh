@@ -8,9 +8,20 @@ type HealthResponse = {
   database: {
     status: 'connected' | 'disconnected'
     message: string
+    connectionTime?: number
   }
   environment: string
   uptime: number
+  platform: string
+  deployment: {
+    region?: string
+    function?: string
+    vercelUrl?: string
+  }
+  diagnostics?: {
+    available: boolean
+    endpoint: string
+  }
 }
 
 export default async function handler(
@@ -28,7 +39,17 @@ export default async function handler(
         message: 'Method not allowed'
       },
       environment: process.env.NODE_ENV || 'development',
-      uptime: process.uptime()
+      uptime: process.uptime(),
+      platform: 'vercel',
+      deployment: {
+        region: process.env.VERCEL_REGION,
+        function: process.env.AWS_LAMBDA_FUNCTION_NAME || process.env.VERCEL_FUNCTION_NAME,
+        vercelUrl: process.env.VERCEL_URL
+      },
+      diagnostics: {
+        available: true,
+        endpoint: '/api/diagnostics'
+      }
     })
   }
 
@@ -47,10 +68,21 @@ export default async function handler(
         status: isDatabaseHealthy ? 'connected' : 'disconnected',
         message: isDatabaseHealthy 
           ? `Database connection successful (${responseTime}ms)` 
-          : 'Database connection failed'
+          : 'Database connection failed',
+        connectionTime: responseTime
       },
       environment: process.env.NODE_ENV || 'development',
-      uptime: process.uptime()
+      uptime: process.uptime(),
+      platform: 'vercel',
+      deployment: {
+        region: process.env.VERCEL_REGION,
+        function: process.env.AWS_LAMBDA_FUNCTION_NAME || process.env.VERCEL_FUNCTION_NAME,
+        vercelUrl: process.env.VERCEL_URL
+      },
+      diagnostics: {
+        available: true,
+        endpoint: '/api/diagnostics'
+      }
     }
 
     // Set appropriate status code
@@ -74,7 +106,17 @@ export default async function handler(
         message: error instanceof Error ? error.message : 'Unknown error'
       },
       environment: process.env.NODE_ENV || 'development',
-      uptime: process.uptime()
+      uptime: process.uptime(),
+      platform: 'vercel',
+      deployment: {
+        region: process.env.VERCEL_REGION,
+        function: process.env.AWS_LAMBDA_FUNCTION_NAME || process.env.VERCEL_FUNCTION_NAME,
+        vercelUrl: process.env.VERCEL_URL
+      },
+      diagnostics: {
+        available: true,
+        endpoint: '/api/diagnostics'
+      }
     }
 
     return res.status(503).json(errorResponse)

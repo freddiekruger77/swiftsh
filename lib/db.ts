@@ -11,16 +11,40 @@ const sqlite = sqlite3.verbose()
 export type { PackageData, StatusUpdate, ContactSubmission } from './types'
 export { PackageStatus } from './types'
 
-// Database connection management
+// Database connection management with retry logic
 let db: sqlite3.Database | null = null
+let connectionRetries = 0
+const MAX_CONNECTION_RETRIES = 3
+const RETRY_DELAY_MS = 1000
 
 const getDatabasePath = (): string => {
-  const dbPath = process.env.DATABASE_PATH || './data/swiftship.db'
+  let dbPath = process.env.DATABASE_PATH || './data/swiftship.db'
+  
+  // In serverless environments (like Vercel), prefer /tmp directory
+  if (process.env.NODE_ENV === 'production' && !process.env.DATABASE_PATH) {
+    dbPath = '/tmp/swiftship.db'
+    console.log('Using /tmp directory for database in serverless environment')
+  }
+  
   const dir = path.dirname(dbPath)
   
   // Ensure data directory exists
-  if (!fs.existsSync(dir)) {
-    fs.mkdirSync(dir, { recursive: true })
+  try {
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir, { recursive: true })
+    }
+  } catch (error) {
+    console.error('Failed to create database directory:', error)
+    // Fallback to /tmp if directory creation fails
+    if (dbPath !== '/tmp/swiftship.db') {
+      console.log('Falling back to /tmp directory')
+      dbPath = '/tmp/swiftship.db'
+      try {
+        fs.mkdirSync('/tmp', { recursive: true })
+      } catch (tmpError) {
+        console.error('Failed to create /tmp directory:', tmpError)
+      }
+    }
   }
   
   return dbPath
@@ -33,16 +57,102 @@ export const getDatabase = (): Promise<sqlite3.Database> => {
       return
     }
 
-    const dbPath = getDatabasePath()
-    
-    db = new sqlite.Database(dbPath, (err) => {
-      if (err) {
-        console.error('Error opening database:', err.message)
-        reject(err)
-      } else {
-        console.log('Connected to SQLite database at:', dbPath)
-        resolve(db!)
-      }
+    const connectWithRetry = async (attempt: number = 1): Promise<void> => {
+      const dbPath = getDatabasePath()
+      
+      // Add timeout for serverless environments
+      const timeout = setTimeout(() => {
+        reject(new Error(`Database connection timeout (attempt ${attempt}/${MAX_CONNECTION_RETRIES})`))
+      }, 15000) // 15 second timeout
+
+      db = new sqlite.Database(dbPath, sqlite3.OPEN_READWRITE | sqlite3.OPEN_CREATE, async (err) => {
+        clearTimeout(timeout)
+        
+        if (err) {
+          console.error(`Database connection attempt ${attempt} failed:`, err.message)
+          console.error('Database path:', dbPath)
+          console.error('Process platform:', process.platform)
+          console.error('Process cwd:', process.cwd())
+          
+          // Reset db to null on failure
+          db = null
+          
+          // Try to provide more helpful error information
+          if (err.message.includes('SQLITE_CANTOPEN')) {
+            console.error('Database file cannot be opened - check file permissions and directory structure')
+          }
+          
+          // Retry logic for serverless cold starts
+          if (attempt < MAX_CONNECTION_RETRIES) {
+            console.log(`Retrying database connection in ${RETRY_DELAY_MS}ms... (attempt ${attempt + 1}/${MAX_CONNECTION_RETRIES})`)
+            setTimeout(() => {
+              connectWithRetry(attempt + 1).catch(reject)
+            }, RETRY_DELAY_MS * attempt) // Exponential backoff
+          } else {
+            reject(new Error(`Database connection failed after ${MAX_CONNECTION_RETRIES} attempts: ${err.message}`))
+          }
+        } else {
+          console.log(`Connected to SQLite database at: ${dbPath} (attempt ${attempt})`)
+          connectionRetries = 0 // Reset retry counter on success
+          
+          // Configure database for better performance in serverless
+          if (db) {
+            try {
+              // Set busy timeout for concurrent access
+              db.configure('busyTimeout', 30000) // 30 second busy timeout
+              
+              // Optimize for serverless environment
+              await configureDatabaseForServerless(db)
+              
+              resolve(db!)
+            } catch (configError) {
+              console.warn('Database configuration warning:', configError)
+              // Still resolve even if configuration fails
+              resolve(db!)
+            }
+          }
+        }
+      })
+    }
+
+    connectWithRetry().catch(reject)
+  })
+}
+
+// Configure database settings optimized for serverless environments
+const configureDatabaseForServerless = async (database: sqlite3.Database): Promise<void> => {
+  return new Promise((resolve) => {
+    const configurations = [
+      // Use DELETE journal mode instead of WAL for serverless (WAL requires persistent storage)
+      { sql: 'PRAGMA journal_mode = DELETE', description: 'journal mode' },
+      // Reduce synchronous writes for better performance
+      { sql: 'PRAGMA synchronous = NORMAL', description: 'synchronous mode' },
+      // Optimize cache size for memory-constrained environments
+      { sql: 'PRAGMA cache_size = 2000', description: 'cache size' },
+      // Set reasonable timeout for busy database
+      { sql: 'PRAGMA busy_timeout = 30000', description: 'busy timeout' },
+      // Optimize for read-heavy workloads
+      { sql: 'PRAGMA temp_store = MEMORY', description: 'temp store' },
+      // Enable foreign key constraints
+      { sql: 'PRAGMA foreign_keys = ON', description: 'foreign keys' }
+    ]
+
+    let completed = 0
+    const total = configurations.length
+
+    configurations.forEach(({ sql, description }) => {
+      database.run(sql, (err) => {
+        if (err) {
+          console.warn(`Could not set ${description}:`, err.message)
+        } else {
+          console.log(`Database ${description} configured successfully`)
+        }
+        
+        completed++
+        if (completed === total) {
+          resolve()
+        }
+      })
     })
   })
 }
@@ -66,14 +176,79 @@ export const closeDatabase = (): Promise<void> => {
   })
 }
 
-// Database initialization and schema creation
+// Database initialization and schema creation with enhanced error handling
 export const initDatabase = async (): Promise<void> => {
-  try {
-    const database = await getDatabase()
-    
-    // Create tables using promises
-    await new Promise<void>((resolve, reject) => {
-      database.run(`
+  const maxRetries = 3
+  let attempt = 1
+
+  while (attempt <= maxRetries) {
+    try {
+      console.log(`Database initialization attempt ${attempt}/${maxRetries}`)
+      const database = await getDatabase()
+      
+      // Check if database is already initialized
+      const isInitialized = await checkDatabaseInitialization(database)
+      if (isInitialized) {
+        console.log('Database already initialized, skipping schema creation')
+        return
+      }
+
+      // Create tables with enhanced error handling
+      await createDatabaseTables(database)
+      
+      // Create indexes for better performance
+      await createDatabaseIndexes(database)
+      
+      // Verify initialization was successful
+      const verificationResult = await verifyDatabaseInitialization(database)
+      if (!verificationResult.success) {
+        throw new Error(`Database verification failed: ${verificationResult.error}`)
+      }
+
+      console.log('Database initialized successfully')
+      return
+      
+    } catch (error) {
+      console.error(`Database initialization attempt ${attempt} failed:`, error)
+      
+      if (attempt === maxRetries) {
+        console.error('Database initialization failed after all retry attempts')
+        throw new Error(`Database initialization failed after ${maxRetries} attempts: ${error instanceof Error ? error.message : 'Unknown error'}`)
+      }
+      
+      // Wait before retrying (exponential backoff)
+      const delay = Math.pow(2, attempt) * 1000
+      console.log(`Retrying database initialization in ${delay}ms...`)
+      await new Promise(resolve => setTimeout(resolve, delay))
+      attempt++
+    }
+  }
+}
+
+// Check if database is already initialized
+const checkDatabaseInitialization = async (database: sqlite3.Database): Promise<boolean> => {
+  return new Promise((resolve) => {
+    database.get(
+      "SELECT COUNT(*) as count FROM sqlite_master WHERE type='table' AND name IN ('packages', 'status_updates', 'contact_submissions')",
+      (err, row: any) => {
+        if (err) {
+          console.warn('Could not check database initialization status:', err.message)
+          resolve(false)
+        } else {
+          const tableCount = row?.count || 0
+          resolve(tableCount === 3) // All 3 tables should exist
+        }
+      }
+    )
+  })
+}
+
+// Create database tables with proper error handling
+const createDatabaseTables = async (database: sqlite3.Database): Promise<void> => {
+  const tables = [
+    {
+      name: 'packages',
+      sql: `
         CREATE TABLE IF NOT EXISTS packages (
           id TEXT PRIMARY KEY,
           tracking_number TEXT UNIQUE NOT NULL,
@@ -85,14 +260,11 @@ export const initDatabase = async (): Promise<void> => {
           customer_name TEXT,
           customer_email TEXT
         )
-      `, (err) => {
-        if (err) reject(err)
-        else resolve()
-      })
-    })
-
-    await new Promise<void>((resolve, reject) => {
-      database.run(`
+      `
+    },
+    {
+      name: 'status_updates',
+      sql: `
         CREATE TABLE IF NOT EXISTS status_updates (
           id TEXT PRIMARY KEY,
           package_id TEXT NOT NULL,
@@ -102,14 +274,11 @@ export const initDatabase = async (): Promise<void> => {
           notes TEXT,
           FOREIGN KEY (package_id) REFERENCES packages (id)
         )
-      `, (err) => {
-        if (err) reject(err)
-        else resolve()
-      })
-    })
-
-    await new Promise<void>((resolve, reject) => {
-      database.run(`
+      `
+    },
+    {
+      name: 'contact_submissions',
+      sql: `
         CREATE TABLE IF NOT EXISTS contact_submissions (
           id TEXT PRIMARY KEY,
           name TEXT NOT NULL,
@@ -118,39 +287,129 @@ export const initDatabase = async (): Promise<void> => {
           submitted_at TEXT NOT NULL,
           resolved BOOLEAN DEFAULT FALSE
         )
-      `, (err) => {
-        if (err) reject(err)
-        else resolve()
+      `
+    }
+  ]
+
+  for (const table of tables) {
+    await new Promise<void>((resolve, reject) => {
+      database.run(table.sql, (err) => {
+        if (err) {
+          console.error(`Failed to create table ${table.name}:`, err.message)
+          reject(new Error(`Failed to create table ${table.name}: ${err.message}`))
+        } else {
+          console.log(`Table ${table.name} created successfully`)
+          resolve()
+        }
       })
     })
+  }
+}
 
-    // Create indexes
-    const indexes = [
-      'CREATE INDEX IF NOT EXISTS idx_packages_tracking_number ON packages(tracking_number)',
-      'CREATE INDEX IF NOT EXISTS idx_status_updates_package_id ON status_updates(package_id)',
-      'CREATE INDEX IF NOT EXISTS idx_status_updates_timestamp ON status_updates(timestamp)',
-      'CREATE INDEX IF NOT EXISTS idx_contact_submissions_submitted_at ON contact_submissions(submitted_at)'
-    ]
+// Create database indexes for better performance
+const createDatabaseIndexes = async (database: sqlite3.Database): Promise<void> => {
+  const indexes = [
+    { name: 'idx_packages_tracking_number', sql: 'CREATE INDEX IF NOT EXISTS idx_packages_tracking_number ON packages(tracking_number)' },
+    { name: 'idx_status_updates_package_id', sql: 'CREATE INDEX IF NOT EXISTS idx_status_updates_package_id ON status_updates(package_id)' },
+    { name: 'idx_status_updates_timestamp', sql: 'CREATE INDEX IF NOT EXISTS idx_status_updates_timestamp ON status_updates(timestamp)' },
+    { name: 'idx_contact_submissions_submitted_at', sql: 'CREATE INDEX IF NOT EXISTS idx_contact_submissions_submitted_at ON contact_submissions(submitted_at)' }
+  ]
 
-    for (const indexSql of indexes) {
+  for (const index of indexes) {
+    await new Promise<void>((resolve, reject) => {
+      database.run(index.sql, (err) => {
+        if (err) {
+          console.warn(`Failed to create index ${index.name}:`, err.message)
+          // Don't reject for index creation failures, just warn
+          resolve()
+        } else {
+          console.log(`Index ${index.name} created successfully`)
+          resolve()
+        }
+      })
+    })
+  }
+}
+
+// Verify database initialization was successful
+const verifyDatabaseInitialization = async (database: sqlite3.Database): Promise<{ success: boolean; error?: string }> => {
+  try {
+    // Check that all tables exist and are accessible
+    const tables = ['packages', 'status_updates', 'contact_submissions']
+    
+    for (const tableName of tables) {
       await new Promise<void>((resolve, reject) => {
-        database.run(indexSql, (err) => {
-          if (err) reject(err)
-          else resolve()
+        database.get(`SELECT COUNT(*) as count FROM ${tableName}`, (err, row) => {
+          if (err) {
+            reject(new Error(`Table ${tableName} is not accessible: ${err.message}`))
+          } else {
+            resolve()
+          }
         })
       })
     }
 
-    console.log('Database initialized successfully')
+    // Test write capability
+    await new Promise<void>((resolve, reject) => {
+      const testId = `init_test_${Date.now()}`
+      database.run('CREATE TEMP TABLE IF NOT EXISTS init_test (id TEXT)', (createErr) => {
+        if (createErr) {
+          reject(new Error(`Cannot create temp table: ${createErr.message}`))
+          return
+        }
+        
+        database.run('INSERT INTO init_test (id) VALUES (?)', [testId], (insertErr) => {
+          if (insertErr) {
+            reject(new Error(`Cannot write to database: ${insertErr.message}`))
+            return
+          }
+          
+          database.run('DELETE FROM init_test WHERE id = ?', [testId], (deleteErr) => {
+            if (deleteErr) {
+              reject(new Error(`Cannot delete from database: ${deleteErr.message}`))
+            } else {
+              resolve()
+            }
+          })
+        })
+      })
+    })
+
+    return { success: true }
   } catch (error) {
-    console.error('Error initializing database:', error)
-    throw error
+    return { 
+      success: false, 
+      error: error instanceof Error ? error.message : 'Unknown verification error' 
+    }
   }
 }
 
 // Utility functions
 export const generateId = (): string => {
   return Date.now().toString(36) + Math.random().toString(36).substr(2)
+}
+
+// Timeout wrapper for database operations in serverless environments
+export const withTimeout = <T>(
+  promise: Promise<T>, 
+  timeoutMs: number = 30000, 
+  operation: string = 'Database operation'
+): Promise<T> => {
+  return new Promise((resolve, reject) => {
+    const timeout = setTimeout(() => {
+      reject(new Error(`${operation} timed out after ${timeoutMs}ms`))
+    }, timeoutMs)
+
+    promise
+      .then(result => {
+        clearTimeout(timeout)
+        resolve(result)
+      })
+      .catch(error => {
+        clearTimeout(timeout)
+        reject(error)
+      })
+  })
 }
 
 export const isValidEmail = (email: string): boolean => {
@@ -323,7 +582,7 @@ export const getPackageByTrackingNumber = async (trackingNumber: string): Promis
     return null
   }
   
-  return new Promise((resolve, reject) => {
+  const queryPromise = new Promise<PackageData | null>((resolve, reject) => {
     database.get(
       'SELECT * FROM packages WHERE tracking_number = ?',
       [formattedTrackingNumber],
@@ -336,6 +595,8 @@ export const getPackageByTrackingNumber = async (trackingNumber: string): Promis
       }
     )
   })
+  
+  return withTimeout(queryPromise, 15000, 'Get package by tracking number')
 }
 
 export const getPackageById = async (id: string): Promise<PackageData | null> => {
