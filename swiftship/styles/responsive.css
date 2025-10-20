@@ -1,0 +1,378 @@
+/* Responsive Utilities and Breakpoints */
+
+/* Breakpoint Variables (for reference) */
+/*
+  xs: 0px
+  sm: 576px
+  md: 768px
+  lg: 992px
+  xl: 1200px
+  xxl: 1400px
+*/
+
+/* Container Responsive Behavior */
+.container-fluid {
+  width: 100%;
+  padding-right: 1rem;
+  padding-left: 1rem;
+  margin-right: auto;
+  margin-left: auto;
+}
+
+@media (min-width: 576px) {
+  .container {
+    max-width: 540px;
+  }
+}
+
+@media (min-width: 768px) {
+  .container {
+    max-width: 720px;
+  }
+}
+
+@media (min-width: 992px) {
+  .container {
+    max-width: 960px;
+  }
+}
+
+@media (min-width: 1200px) {
+  .container {
+    max-width: 1140px;
+  }
+}
+
+@media (min-width: 1400px) {
+  .container {
+    max-width: 1320px;
+  }
+}
+
+/* Responsive Display Utilities */
+@media (max-width: 575.98px) {
+  .d-xs-none { display: none !important; }
+  .d-xs-block { display: block !important; }
+  .d-xs-flex { display: flex !important; }
+  .d-xs-grid { display: grid !important; }
+}
+
+@media (min-width: 576px) and (max-width: 767.98px) {
+  .d-sm-none { display: none !important; }
+  .d-sm-block { display: block !important; }
+  .d-sm-flex { display: flex !important; }
+  .d-sm-grid { display: grid !important; }
+}
+
+@media (min-width: 768px) and (max-width: 991.98px) {
+  .d-md-none { display: none !important; }
+  .d-md-block { display: block !important; }
+  .d-md-flex { display: flex !important; }
+  .d-md-grid { display: grid !important; }
+}
+
+@media (min-width: 992px) and (max-width: 1199.98px) {
+  .d-lg-none { display: none !important; }
+  .d-lg-block { display: block !important; }
+  .d-lg-flex { display: flex !important; }
+  .d-lg-grid { display: grid !important; }
+}
+
+@media (min-width: 1200px) {
+  .d-xl-none { display: none !important; }
+  .d-xl-block { display: block !important; }
+  .d-xl-flex { display: flex !important; }
+  .d-xl-grid { display: grid !important; }
+}
+
+/* Responsive Text Alignment */
+@media (max-width: 767.98px) {
+  .text-sm-center { text-align: center !important; }
+  .text-sm-left { text-align: left !important; }
+  .text-sm-right { text-align: right !important; }
+}
+
+@media (min-width: 768px) {
+  .text-md-center { text-align: center !important; }
+  .text-md-left { text-align: left !important; }
+  .text-md-right { text-align: right !important; }
+}
+
+/* Responsive Spacing */
+@media (max-width: 767.98px) {
+  .p-sm-0 { padding: 0 !important; }
+  .p-sm-1 { padding: 0.25rem !important; }
+  .p-sm-2 { padding: 0.5rem !important; }
+  .p-sm-3 { padding: 1rem !important; }
+  .p-sm-4 { padding: 1.5rem !important; }
+  .p-sm-5 { padding: 2rem !important; }
+
+  .m-sm-0 { margin: 0 !important; }
+  .m-sm-1 { margin: 0.25rem !important; }
+  .m-sm-2 { margin: 0.5rem !important; }
+  .m-sm-3 { margin: 1rem !important; }
+  .m-sm-4 { margin: 1.5rem !important; }
+  .m-sm-5 { margin: 2rem !important; }
+
+  .px-sm-0 { padding-left: 0 !important; padding-right: 0 !important; }
+  .px-sm-1 { padding-left: 0.25rem !important; padding-right: 0.25rem !important; }
+  .px-sm-2 { padding-left: 0.5rem !important; padding-right: 0.5rem !important; }
+  .px-sm-3 { padding-left: 1rem !important; padding-right: 1rem !important; }
+
+  .py-sm-0 { padding-top: 0 !important; padding-bottom: 0 !important; }
+  .py-sm-1 { padding-top: 0.25rem !important; padding-bottom: 0.25rem !important; }
+  .py-sm-2 { padding-top: 0.5rem !important; padding-bottom: 0.5rem !important; }
+  .py-sm-3 { padding-top: 1rem !important; padding-bottom: 1rem !important; }
+}
+
+/* Responsive Grid Columns */
+@media (max-width: 767.98px) {
+  .grid-cols-sm-1 { grid-template-columns: repeat(1, 1fr) !important; }
+  .grid-cols-sm-2 { grid-template-columns: repeat(2, 1fr) !important; }
+}
+
+@media (min-width: 768px) and (max-width: 991.98px) {
+  .grid-cols-md-1 { grid-template-columns: repeat(1, 1fr) !important; }
+  .grid-cols-md-2 { grid-template-columns: repeat(2, 1fr) !important; }
+  .grid-cols-md-3 { grid-template-columns: repeat(3, 1fr) !important; }
+}
+
+@media (min-width: 992px) {
+  .grid-cols-lg-1 { grid-template-columns: repeat(1, 1fr) !important; }
+  .grid-cols-lg-2 { grid-template-columns: repeat(2, 1fr) !important; }
+  .grid-cols-lg-3 { grid-template-columns: repeat(3, 1fr) !important; }
+  .grid-cols-lg-4 { grid-template-columns: repeat(4, 1fr) !important; }
+}
+
+/* Responsive Flex Direction */
+@media (max-width: 767.98px) {
+  .flex-sm-column { flex-direction: column !important; }
+  .flex-sm-row { flex-direction: row !important; }
+  .justify-sm-center { justify-content: center !important; }
+  .justify-sm-start { justify-content: flex-start !important; }
+  .justify-sm-end { justify-content: flex-end !important; }
+  .align-sm-center { align-items: center !important; }
+  .align-sm-start { align-items: flex-start !important; }
+  .align-sm-end { align-items: flex-end !important; }
+}
+
+/* Mobile-First Form Improvements */
+@media (max-width: 767.98px) {
+  .form-control {
+    font-size: 16px; /* Prevents zoom on iOS */
+    padding: 0.875rem;
+  }
+
+  .btn {
+    padding: 0.875rem 1.5rem;
+    font-size: 1rem;
+    min-height: 44px; /* Touch target size */
+  }
+
+  .btn-sm {
+    min-height: 36px;
+    padding: 0.625rem 1rem;
+  }
+
+  .btn-lg {
+    min-height: 52px;
+    padding: 1.125rem 2rem;
+  }
+}
+
+/* Touch-Friendly Interactions */
+@media (hover: none) and (pointer: coarse) {
+  /* Mobile devices */
+  .hover-lift:hover {
+    transform: none;
+  }
+
+  .hover-scale:hover {
+    transform: none;
+  }
+
+  .card:hover {
+    transform: none;
+  }
+
+  /* Increase touch targets */
+  button, .btn, a[role="button"] {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  /* Remove hover effects on touch devices */
+  .btn:hover {
+    transform: none;
+  }
+}
+
+/* High DPI Displays */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+  /* Optimize for retina displays */
+  .shadow {
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
+  }
+
+  .shadow-md {
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+  }
+
+  .shadow-lg {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+  }
+}
+
+/* Landscape Orientation on Mobile */
+@media (max-width: 767.98px) and (orientation: landscape) {
+  .hero {
+    padding: 2rem 1rem !important;
+  }
+
+  .hero-content h1 {
+    font-size: 1.75rem !important;
+  }
+
+  .page-header h1 {
+    font-size: 1.75rem !important;
+  }
+}
+
+/* Very Small Screens */
+@media (max-width: 320px) {
+  .container {
+    padding: 0 0.75rem;
+  }
+
+  h1 { font-size: 1.5rem; }
+  h2 { font-size: 1.25rem; }
+  h3 { font-size: 1.125rem; }
+
+  .btn {
+    padding: 0.75rem 1rem;
+    font-size: 0.9rem;
+  }
+
+  .card {
+    padding: 0.75rem;
+  }
+
+  .form-control {
+    padding: 0.75rem;
+  }
+}
+
+/* Large Screens Optimization */
+@media (min-width: 1400px) {
+  .hero-content h1 {
+    font-size: 3.5rem;
+  }
+
+  .hero-content p {
+    font-size: 1.375rem;
+  }
+
+  .page-header h1 {
+    font-size: 3rem;
+  }
+
+  .page-header p {
+    font-size: 1.25rem;
+  }
+}
+
+/* Print Optimizations */
+@media print {
+  .no-print,
+  .admin-nav,
+  .admin-header,
+  button,
+  .btn {
+    display: none !important;
+  }
+
+  .container {
+    max-width: none !important;
+    padding: 0 !important;
+  }
+
+  .card {
+    border: 1px solid #000 !important;
+    box-shadow: none !important;
+    page-break-inside: avoid;
+  }
+
+  h1, h2, h3 {
+    page-break-after: avoid;
+  }
+}
+
+/* Dark Mode Support (if implemented) */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg-color: #1a1a1a;
+    --text-color: #ffffff;
+    --border-color: #333333;
+    --card-bg: #2d2d2d;
+  }
+
+  /* This would be expanded if dark mode is implemented */
+}
+
+/* Reduced Data Mode */
+@media (prefers-reduced-data: reduce) {
+  /* Minimize animations and effects for users on limited data */
+  .animate-fadeIn,
+  .animate-slideInUp,
+  .animate-pulse {
+    animation: none !important;
+  }
+
+  .transition,
+  .transition-colors,
+  .transition-transform,
+  .transition-opacity {
+    transition: none !important;
+  }
+}
+
+/* Focus Management for Keyboard Navigation */
+.skip-link {
+  position: absolute;
+  top: -40px;
+  left: 6px;
+  background: #0070f3;
+  color: white;
+  padding: 8px;
+  text-decoration: none;
+  border-radius: 4px;
+  z-index: 1000;
+}
+
+.skip-link:focus {
+  top: 6px;
+}
+
+/* Screen Reader Only Content */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.sr-only-focusable:focus {
+  position: static;
+  width: auto;
+  height: auto;
+  padding: inherit;
+  margin: inherit;
+  overflow: visible;
+  clip: auto;
+  white-space: normal;
+}
