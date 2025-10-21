@@ -2,9 +2,18 @@
 const nextConfig = {
   reactStrictMode: true,
   swcMinify: true,
+  
+  // Netlify deployment configuration
+  output: 'export',
+  trailingSlash: true,
+  images: {
+    unoptimized: true,
+  },
+  
   experimental: {
     serverComponentsExternalPackages: ['sqlite3']
   },
+  
   webpack: (config, { isServer }) => {
     if (!isServer) {
       // Don't resolve 'fs', 'net', 'tls' modules on the client-side

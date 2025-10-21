@@ -87,7 +87,7 @@ export default async function handler(
       status: 'unhealthy',
       timestamp: new Date().toISOString(),
       environment: process.env.NODE_ENV || 'unknown',
-      platform: 'vercel',
+      platform: 'netlify',
       issues: [{
         component: 'routing',
         severity: 'critical',
@@ -118,10 +118,10 @@ export default async function handler(
         component: 'environment',
         severity: 'critical',
         message: `Environment configuration ${envStatus.status}: ${envStatus.missing.length} missing, ${envStatus.invalid.length} invalid`,
-        solution: 'Configure missing environment variables in Vercel dashboard',
+        solution: 'Configure missing environment variables in Netlify dashboard',
         details: { missing: envStatus.missing, invalid: envStatus.invalid }
       })
-      recommendations.push('Set all required environment variables in Vercel project settings')
+      recommendations.push('Set all required environment variables in Netlify project settings')
     }
 
     // 3. Test database connectivity
@@ -144,10 +144,10 @@ export default async function handler(
         component: 'routing',
         severity: 'warning',
         message: 'Some routes may not be accessible',
-        solution: 'Verify Next.js page structure and vercel.json configuration',
+        solution: 'Verify Next.js page structure and netlify.toml configuration',
         details: { pages: routingStatus.pages, apis: routingStatus.apis }
       })
-      recommendations.push('Check vercel.json routing configuration')
+      recommendations.push('Check netlify.toml routing configuration')
     }
 
     // 5. Check build status
@@ -160,7 +160,7 @@ export default async function handler(
         solution: 'Check build logs and resolve compilation errors',
         details: { issues: buildStatus.issues }
       })
-      recommendations.push('Review Vercel build logs for detailed error information')
+      recommendations.push('Review Netlify build logs for detailed error information')
     }
 
     // 6. Check filesystem permissions (serverless specific)
@@ -173,7 +173,7 @@ export default async function handler(
         solution: 'Use /tmp directory for writable files in serverless environment',
         details: fsStatus.details
       })
-      recommendations.push('Move writable files to /tmp directory for Vercel compatibility')
+      recommendations.push('Move writable files to /tmp directory for Netlify compatibility')
     }
 
     const diagnosticTime = Date.now() - startTime
@@ -188,7 +188,7 @@ export default async function handler(
       status: overallStatus,
       timestamp: new Date().toISOString(),
       environment: process.env.NODE_ENV || 'unknown',
-      platform: 'vercel',
+      platform: 'netlify',
       issues,
       recommendations,
       systemInfo,
@@ -214,7 +214,7 @@ export default async function handler(
       status: 'unhealthy',
       timestamp: new Date().toISOString(),
       environment: process.env.NODE_ENV || 'unknown',
-      platform: 'vercel',
+      platform: 'netlify',
       issues: [{
         component: 'build',
         severity: 'critical',
@@ -442,7 +442,7 @@ async function checkFilesystemPermissions() {
   let hasIssues = false
 
   try {
-    // Check /tmp directory (recommended for Vercel)
+    // Check /tmp directory (recommended for Netlify)
     const tmpDir = '/tmp'
     try {
       const testFile = path.join(tmpDir, '.fs-test')

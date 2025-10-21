@@ -3,26 +3,34 @@
   "version": "0.1.0",
   "private": true,
   "description": "Fast and reliable package tracking system built with Next.js",
-  "keywords": ["package-tracking", "shipping", "logistics", "nextjs", "typescript"],
+  "keywords": [
+    "package-tracking",
+    "shipping",
+    "logistics",
+    "nextjs",
+    "typescript"
+  ],
   "author": "SwiftShip Team",
   "license": "MIT",
-  "homepage": "https://swiftship.vercel.app",
+  "homepage": "https://swiftship.netlify.app",
   "repository": {
     "type": "git",
     "url": "https://github.com/your-username/swiftship.git"
   },
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "next build && npm run build:functions",
+    "build:functions": "node scripts/build-netlify-functions.js",
     "start": "next start",
     "lint": "next lint",
     "lint:fix": "next lint --fix",
     "type-check": "tsc --noEmit",
     "test": "echo \"No tests specified\" && exit 0",
-    "deploy": "vercel --prod",
-    "deploy:preview": "vercel",
+    "deploy": "echo 'Deploy via Netlify dashboard'",
+    "deploy:preview": "echo 'Deploy preview via Netlify dashboard'",
+
     "postbuild": "echo \"Build completed successfully\"",
-    "clean": "rm -rf .next out",
+    "clean": "rm -rf .next out netlify/functions",
     "analyze": "ANALYZE=true npm run build",
     "generate-secrets": "node scripts/generate-secrets.js",
     "setup": "npm install && npm run generate-secrets"
@@ -35,11 +43,14 @@
     "sqlite3": "^5.1.6"
   },
   "devDependencies": {
+    "@netlify/plugin-nextjs": "^5.0.0",
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",
+    "cross-env": "^7.0.3",
     "eslint": "^8",
     "eslint-config-next": "14.0.0",
+    "netlify-cli": "^17.0.0",
     "typescript": "^5"
   },
   "engines": {

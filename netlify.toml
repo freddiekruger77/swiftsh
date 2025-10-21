@@ -1,0 +1,56 @@
+[build]
+  publish = "out"
+  command = "npm run build:netlify"
+
+[build.environment]
+  NODE_VERSION = "18"
+  NPM_VERSION = "8"
+
+# Netlify Functions configuration
+[functions]
+  directory = "netlify/functions"
+  node_bundler = "esbuild"
+
+# Headers for security and CORS
+[[headers]]
+  for = "/api/*"
+  [headers.values]
+    Access-Control-Allow-Origin = "*"
+    Access-Control-Allow-Methods = "GET, POST, PUT, DELETE, OPTIONS"
+    Access-Control-Allow-Headers = "Content-Type, Authorization"
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Content-Type-Options = "nosniff"
+    X-Frame-Options = "DENY"
+    X-XSS-Protection = "1; mode=block"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    Permissions-Policy = "camera=(), microphone=(), geolocation=()"
+
+# Redirects
+[[redirects]]
+  from = "/dashboard"
+  to = "/admin"
+  status = 301
+
+[[redirects]]
+  from = "/api/*"
+  to = "/.netlify/functions/:splat"
+  status = 200
+
+# Environment variables (set these in Netlify dashboard)
+# NEXTAUTH_URL
+# NEXTAUTH_SECRET  
+# DATABASE_PATH
+# ADMIN_EMAIL
+# ADMIN_PASSWORD
+
+# Build plugins
+[[plugins]]
+  package = "@netlify/plugin-nextjs"
+
+# Edge functions (optional, for advanced routing)
+# [[edge_functions]]
+#   function = "auth"
+#   path = "/admin/*"

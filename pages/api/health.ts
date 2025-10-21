@@ -16,7 +16,7 @@ type HealthResponse = {
   deployment: {
     region?: string
     function?: string
-    vercelUrl?: string
+    netlifyUrl?: string
   }
   diagnostics?: {
     available: boolean
@@ -40,15 +40,15 @@ export default async function handler(
       },
       environment: process.env.NODE_ENV || 'development',
       uptime: process.uptime(),
-      platform: 'vercel',
+      platform: 'netlify',
       deployment: {
-        region: process.env.VERCEL_REGION,
-        function: process.env.AWS_LAMBDA_FUNCTION_NAME || process.env.VERCEL_FUNCTION_NAME,
-        vercelUrl: process.env.VERCEL_URL
+        region: process.env.NETLIFY_REGION,
+        function: process.env.AWS_LAMBDA_FUNCTION_NAME || process.env.NETLIFY_FUNCTION_NAME,
+        netlifyUrl: process.env.NETLIFY_URL || process.env.URL
       },
       diagnostics: {
         available: true,
-        endpoint: '/api/diagnostics'
+        endpoint: '/.netlify/functions/diagnostics'
       }
     })
   }
@@ -73,15 +73,15 @@ export default async function handler(
       },
       environment: process.env.NODE_ENV || 'development',
       uptime: process.uptime(),
-      platform: 'vercel',
+      platform: 'netlify',
       deployment: {
-        region: process.env.VERCEL_REGION,
-        function: process.env.AWS_LAMBDA_FUNCTION_NAME || process.env.VERCEL_FUNCTION_NAME,
-        vercelUrl: process.env.VERCEL_URL
+        region: process.env.NETLIFY_REGION,
+        function: process.env.AWS_LAMBDA_FUNCTION_NAME || process.env.NETLIFY_FUNCTION_NAME,
+        netlifyUrl: process.env.NETLIFY_URL || process.env.URL
       },
       diagnostics: {
         available: true,
-        endpoint: '/api/diagnostics'
+        endpoint: '/.netlify/functions/diagnostics'
       }
     }
 
@@ -107,15 +107,15 @@ export default async function handler(
       },
       environment: process.env.NODE_ENV || 'development',
       uptime: process.uptime(),
-      platform: 'vercel',
+      platform: 'netlify',
       deployment: {
-        region: process.env.VERCEL_REGION,
-        function: process.env.AWS_LAMBDA_FUNCTION_NAME || process.env.VERCEL_FUNCTION_NAME,
-        vercelUrl: process.env.VERCEL_URL
+        region: process.env.NETLIFY_REGION,
+        function: process.env.AWS_LAMBDA_FUNCTION_NAME || process.env.NETLIFY_FUNCTION_NAME,
+        netlifyUrl: process.env.NETLIFY_URL || process.env.URL
       },
       diagnostics: {
         available: true,
-        endpoint: '/api/diagnostics'
+        endpoint: '/.netlify/functions/diagnostics'
       }
     }
 

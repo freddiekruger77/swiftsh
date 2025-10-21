@@ -1,15 +1,23 @@
-import { useState } from 'react'
-import { signIn, getSession } from 'next-auth/react'
+import { useState, useEffect } from 'react'
+import { signIn, useSession } from 'next-auth/react'
 import { useRouter } from 'next/router'
 import Head from 'next/head'
-import { GetServerSideProps } from 'next'
 
 export default function AdminLogin() {
+  const { data: session, status } = useSession()
+  const router = useRouter()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
-  const router = useRouter()
+
+  // Client-side redirect if already authenticated (for Netlify compatibility)
+  useEffect(() => {
+    if (status === 'loading') return // Still loading
+    if (session) {
+      router.push('/admin')
+    }
+  }, [session, status, router])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -204,20 +212,5 @@ export default function AdminLogin() {
   )
 }
 
-// Redirect if already authenticated
-export const getServerSideProps: GetServerSideProps = async (context) => {
-  const session = await getSession(context)
-  
-  if (session) {
-    return {
-      redirect: {
-        destination: '/admin',
-        permanent: false
-      }
-    }
-  }
-  
-  return {
-    props: {}
-  }
-}
+// Note: getServerSideProps removed for Netlify compatibility
+// For Vercel deployment, server-side authentication can be added back if needed

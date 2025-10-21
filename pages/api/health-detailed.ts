@@ -34,7 +34,7 @@ interface DetailedHealthResponse {
   deployment: {
     region?: string
     function?: string
-    vercelUrl?: string
+    netlifyUrl?: string
   }
   recommendations: string[]
 }
@@ -50,7 +50,7 @@ export default async function handler(
       timestamp: new Date().toISOString(),
       version: process.env.npm_package_version || '0.1.0',
       environment: process.env.NODE_ENV || 'development',
-      platform: 'vercel',
+      platform: 'netlify',
       uptime: process.uptime(),
       database: {
         status: 'error',
@@ -126,7 +126,7 @@ export default async function handler(
       timestamp: new Date().toISOString(),
       version: process.env.npm_package_version || '0.1.0',
       environment: process.env.NODE_ENV || 'development',
-      platform: 'vercel',
+      platform: 'netlify',
       uptime: process.uptime(),
       database: {
         status: dbStatus,
@@ -162,7 +162,7 @@ export default async function handler(
       timestamp: new Date().toISOString(),
       version: process.env.npm_package_version || '0.1.0',
       environment: process.env.NODE_ENV || 'development',
-      platform: 'vercel',
+      platform: 'netlify',
       uptime: process.uptime(),
       database: {
         status: 'error',
@@ -201,8 +201,8 @@ function getSystemInfo() {
 
 function getDeploymentInfo() {
   return {
-    region: process.env.VERCEL_REGION,
-    function: process.env.AWS_LAMBDA_FUNCTION_NAME || process.env.VERCEL_FUNCTION_NAME,
-    vercelUrl: process.env.VERCEL_URL
+    region: process.env.NETLIFY_REGION,
+    function: process.env.AWS_LAMBDA_FUNCTION_NAME || process.env.NETLIFY_FUNCTION_NAME,
+    netlifyUrl: process.env.NETLIFY_URL || process.env.URL
   }
 }

@@ -20,10 +20,14 @@ const RETRY_DELAY_MS = 1000
 const getDatabasePath = (): string => {
   let dbPath = process.env.DATABASE_PATH || './data/swiftship.db'
   
-  // In serverless environments (like Vercel), prefer /tmp directory
-  if (process.env.NODE_ENV === 'production' && !process.env.DATABASE_PATH) {
+  // Detect Netlify serverless environment
+  const isNetlifyServerless = process.env.NODE_ENV === 'production' && 
+    (process.env.NETLIFY || process.env.AWS_LAMBDA_FUNCTION_NAME)
+  
+  // In Netlify serverless environment, use /tmp directory
+  if (isNetlifyServerless && !process.env.DATABASE_PATH) {
     dbPath = '/tmp/swiftship.db'
-    console.log('Using /tmp directory for database in serverless environment')
+    console.log('Using /tmp directory for database in Netlify serverless environment')
   }
   
   const dir = path.dirname(dbPath)

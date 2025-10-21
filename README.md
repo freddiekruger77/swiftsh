@@ -22,7 +22,7 @@ A modern, fast, and reliable package tracking system built with Next.js, TypeScr
 - **Styling**: CSS-in-JS with responsive utilities
 - **Validation**: Comprehensive client-side and server-side validation
 - **Error Handling**: Advanced error boundary system
-- **Deployment**: Vercel with production optimizations
+- **Deployment**: Netlify with serverless functions
 
 ## 🚀 Quick Start
 
@@ -111,7 +111,7 @@ swiftship/
 
 ## 🚀 Deployment
 
-### Deploy to Vercel (Recommended)
+### Deploy to Netlify
 
 1. **Push to GitHub**
 ```bash
@@ -120,15 +120,17 @@ git commit -m "Initial commit"
 git push origin main
 ```
 
-2. **Deploy to Vercel**
-- Go to [vercel.com](https://vercel.com)
+2. **Deploy to Netlify**
+- Go to [netlify.com](https://netlify.com)
 - Import your GitHub repository
+- Set build command: `npm run build`
+- Set publish directory: `out`
 - Set environment variables
 - Deploy!
 
 3. **Set Environment Variables**
 ```bash
-NEXTAUTH_URL=https://your-domain.vercel.app
+NEXTAUTH_URL=https://your-domain.netlify.app
 NEXTAUTH_SECRET=your-production-secret
 DATABASE_PATH=/tmp/swiftship.db
 ADMIN_EMAIL=admin@swiftship.com
@@ -137,7 +139,7 @@ ADMIN_PASSWORD=your-secure-password
 
 ### Alternative Deployment
 
-See [DEPLOYMENT.md](./DEPLOYMENT.md) for detailed deployment instructions including:
+See [DEPLOYMENT_GUIDE.md](./DEPLOYMENT_GUIDE.md) for detailed deployment instructions including:
 - Netlify deployment
 - Railway deployment
 - Docker deployment
@@ -153,7 +155,7 @@ npm run build        # Build for production
 npm run start        # Start production server
 npm run lint         # Run ESLint
 npm run type-check   # Run TypeScript checks
-npm run deploy       # Deploy to Vercel
+npm run deploy       # Deploy to Netlify
 ```
 
 ### Database Management
@@ -237,7 +239,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 🎉 Demo
 
-Try the live demo at: [https://swiftship.vercel.app](https://swiftship.vercel.app)
+Try the live demo at: [https://swiftship.netlify.app](https://swiftship.netlify.app)
 
 **Demo Credentials:**
 - Email: `admin@swiftship.com`
