@@ -50,7 +50,7 @@ npm run deploy:vercel
 
 ### Option 2: Netlify (New)
 ```bash
-npm run build:netlify
+npm run build
 # Deploy via Netlify dashboard or CLI
 ```
 
@@ -63,7 +63,7 @@ npm run build:netlify
 
 ### Build Commands
 - `npm run build` - Standard Next.js build (Vercel)
-- `npm run build:netlify` - Netlify-optimized build
+- `npm run build` - Netlify-optimized build
 - `npm run build:functions` - Generate Netlify functions only
 
 ## 🔗 API Endpoints
@@ -99,7 +99,7 @@ NODE_ENV=production
 
 ### ✅ Build Tests
 - [x] Vercel build: `npm run build` ✓
-- [x] Netlify build: `npm run build:netlify` ✓
+- [x] Netlify build: `npm run build` ✓
 - [x] Function generation: `npm run build:functions` ✓
 - [x] TypeScript compilation: No errors ✓
 - [x] Static export: All pages exported ✓
@@ -138,7 +138,7 @@ swiftship/
 
 ### For Netlify Deployment
 1. **Connect Repository**: Link GitHub repo to Netlify
-2. **Configure Build**: Set build command to `npm run build:netlify`
+2. **Configure Build**: Set build command to `npm run build`
 3. **Set Environment Variables**: Add all required variables
 4. **Deploy**: Trigger first deployment
 5. **Test**: Verify all functions work correctly

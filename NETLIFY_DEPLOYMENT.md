@@ -21,7 +21,7 @@ This guide will help you deploy SwiftShip to Netlify with full functionality inc
 
 In Netlify dashboard, set these build settings:
 
-- **Build command**: `npm run build:netlify`
+- **Build command**: `npm run build`
 - **Publish directory**: `out`
 - **Functions directory**: `netlify/functions`
 

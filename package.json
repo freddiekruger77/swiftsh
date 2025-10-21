@@ -20,6 +20,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build && npm run build:functions",
+    "build:netlify": "npm run build",
     "build:functions": "node scripts/build-netlify-functions.js",
     "start": "next start",
     "lint": "next lint",

@@ -25,7 +25,7 @@
 - [ ] New site created from Git repository
 - [ ] Correct branch selected for deployment
 - [ ] Build settings configured:
-  - Build command: `npm run build:netlify`
+  - Build command: `npm run build`
   - Publish directory: `out`
   - Functions directory: `netlify/functions`
 
