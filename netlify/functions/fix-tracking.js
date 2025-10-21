@@ -1,36 +1,4 @@
-const fs = require('fs')
-const path = require('path')
-
-console.log('Building Netlify functions...')
-
-// Create netlify functions directory if it doesn't exist
-const functionsDir = path.join(__dirname, '..', 'netlify', 'functions')
-if (!fs.existsSync(functionsDir)) {
-  fs.mkdirSync(functionsDir, { recursive: true })
-}
-
-// API routes to convert to Netlify functions
-const routes = [
-  { path: 'health.ts', name: 'health' },
-  { path: 'health-detailed.ts', name: 'health-detailed' },
-  { path: 'diagnostics.ts', name: 'diagnostics' },
-  { path: 'test-deployment.ts', name: 'test-deployment' },
-  { path: 'track.ts', name: 'track' },
-  { path: 'contact.ts', name: 'contact' },
-  { path: 'debug-db.ts', name: 'debug-db' },
-  { path: 'init-sample-data.ts', name: 'init-sample-data' },
-  { path: 'fix-tracking.ts', name: 'fix-tracking' },
-  { path: 'test-simple.ts', name: 'test-simple' },
-  { path: 'auth/[...nextauth].ts', name: 'auth-nextauth' },
-  { path: 'admin/packages.ts', name: 'admin-packages' },
-  { path: 'admin/init-db.ts', name: 'admin-init-db' },
-  { path: 'admin/update.ts', name: 'admin-update' },
-  { path: 'admin/create-package.ts', name: 'admin-create-package' }
-]
-
-// Create a universal Netlify function wrapper
-function createNetlifyFunction(apiPath, functionName) {
-  return `// Netlify function wrapper for ${apiPath}
+// Netlify function wrapper for fix-tracking.ts
 // This function adapts Next.js API routes to work with Netlify Functions
 
 exports.handler = async (event, context) => {
@@ -39,7 +7,7 @@ exports.handler = async (event, context) => {
   
   try {
     // Dynamic import of the Next.js API handler
-    const { default: handler } = await import('../../pages/api/${apiPath.replace('.ts', '.js')}')
+    const { default: handler } = await import('../../pages/api/fix-tracking.js')
     
     // Parse request body
     let body = {}
@@ -157,52 +125,3 @@ function parseCookies(cookieString) {
   }
   return cookies
 }
-`
-}
-
-// Create Netlify functions for all routes
-routes.forEach(route => {
-  const functionContent = createNetlifyFunction(route.path, route.name)
-  const functionPath = path.join(functionsDir, `${route.name}.js`)
-  
-  fs.writeFileSync(functionPath, functionContent)
-  console.log(`✓ Created Netlify function: ${route.name}.js`)
-})
-
-// Create a catch-all API function for any missed routes
-const catchAllFunction = `// Catch-all function for API routes
-exports.handler = async (event, context) => {
-  return {
-    statusCode: 404,
-    headers: {
-      'Content-Type': 'application/json',
-      'Access-Control-Allow-Origin': '*'
-    },
-    body: JSON.stringify({
-      success: false,
-      message: 'API endpoint not found',
-      path: event.path,
-      availableEndpoints: [
-        '/.netlify/functions/health',
-        '/.netlify/functions/health-detailed',
-        '/.netlify/functions/diagnostics',
-        '/.netlify/functions/track',
-        '/.netlify/functions/contact',
-        '/.netlify/functions/admin-packages',
-        '/.netlify/functions/admin-init-db'
-      ]
-    })
-  }
-}
-`
-
-fs.writeFileSync(path.join(functionsDir, 'api-fallback.js'), catchAllFunction)
-console.log('✓ Created catch-all function: api-fallback.js')
-
-console.log(`\n🎉 Netlify functions build completed!`)
-console.log(`📁 Functions created in: netlify/functions/`)
-console.log(`🔗 Functions will be available at: /.netlify/functions/[function-name]`)
-console.log(`\nExample URLs:`)
-console.log(`  - /.netlify/functions/health`)
-console.log(`  - /.netlify/functions/track`)
-console.log(`  - /.netlify/functions/admin-packages`)
