@@ -5,6 +5,8 @@
 [build.environment]
   NODE_VERSION = "18"
   NPM_VERSION = "8"
+  # Enable PostgreSQL native bindings
+  PYTHON_VERSION = "3.8"
 
 # Netlify Functions configuration
 [functions]
@@ -45,11 +47,25 @@
   status = 200
 
 # Environment variables (set these in Netlify dashboard)
+# Required for all deployments:
 # NEXTAUTH_URL
 # NEXTAUTH_SECRET  
-# DATABASE_PATH
 # ADMIN_EMAIL
 # ADMIN_PASSWORD
+
+# For PostgreSQL/Neon DB (recommended):
+# NEON_DATABASE_URL
+# NEON_MAX_CONNECTIONS
+# NEON_IDLE_TIMEOUT
+# NEON_CONNECTION_TIMEOUT
+
+# For SQLite (legacy):
+# DATABASE_PATH
+
+# Optional performance settings:
+# ENABLE_PERFORMANCE_MONITORING
+# SLOW_QUERY_THRESHOLD
+# NEON_REGION
 
 # Build plugins
 [[plugins]]

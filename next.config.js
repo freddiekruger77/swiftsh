@@ -11,12 +11,12 @@ const nextConfig = {
   },
   
   experimental: {
-    serverComponentsExternalPackages: ['sqlite3']
+    serverComponentsExternalPackages: ['sqlite3', 'pg']
   },
   
   webpack: (config, { isServer }) => {
     if (!isServer) {
-      // Don't resolve 'fs', 'net', 'tls' modules on the client-side
+      // Don't resolve server-only modules on the client-side
       config.resolve.fallback = {
         ...config.resolve.fallback,
         fs: false,
@@ -27,12 +27,14 @@ const nextConfig = {
         os: false,
         stream: false,
         util: false,
+        pg: false,
+        'pg-native': false,
       }
     }
     
-    // Externalize sqlite3 for server-side
+    // Externalize database modules for server-side
     if (isServer) {
-      config.externals.push('sqlite3')
+      config.externals.push('sqlite3', 'pg', 'pg-native')
     }
     
     return config

@@ -11,9 +11,21 @@ if (!fs.existsSync(functionsDir)) {
 
 // API routes to convert to Netlify functions
 const routes = [
+  // Legacy SQLite endpoints
   { path: 'health.ts', name: 'health' },
   { path: 'health-detailed.ts', name: 'health-detailed' },
   { path: 'diagnostics.ts', name: 'diagnostics' },
+  
+  // New PostgreSQL/Neon endpoints
+  { path: 'health-postgres.ts', name: 'health-postgres' },
+  { path: 'health-detailed-postgres.ts', name: 'health-detailed-postgres' },
+  { path: 'diagnostics-postgres.ts', name: 'diagnostics-postgres' },
+  
+  // Existing Neon endpoints
+  { path: 'health-neon.ts', name: 'health-neon' },
+  { path: 'diagnostics-neon.ts', name: 'diagnostics-neon' },
+  
+  // Application endpoints
   { path: 'test-deployment.ts', name: 'test-deployment' },
   { path: 'track.ts', name: 'track' },
   { path: 'contact.ts', name: 'contact' },
@@ -21,7 +33,11 @@ const routes = [
   { path: 'init-sample-data.ts', name: 'init-sample-data' },
   { path: 'fix-tracking.ts', name: 'fix-tracking' },
   { path: 'test-simple.ts', name: 'test-simple' },
+  
+  // Authentication
   { path: 'auth/[...nextauth].ts', name: 'auth-nextauth' },
+  
+  // Admin endpoints
   { path: 'admin/packages.ts', name: 'admin-packages' },
   { path: 'admin/init-db.ts', name: 'admin-init-db' },
   { path: 'admin/update.ts', name: 'admin-update' },
@@ -184,8 +200,9 @@ exports.handler = async (event, context) => {
       path: event.path,
       availableEndpoints: [
         '/.netlify/functions/health',
-        '/.netlify/functions/health-detailed',
-        '/.netlify/functions/diagnostics',
+        '/.netlify/functions/health-postgres',
+        '/.netlify/functions/health-detailed-postgres',
+        '/.netlify/functions/diagnostics-postgres',
         '/.netlify/functions/track',
         '/.netlify/functions/contact',
         '/.netlify/functions/admin-packages',
