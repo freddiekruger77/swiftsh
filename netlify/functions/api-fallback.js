@@ -12,8 +12,9 @@ exports.handler = async (event, context) => {
       path: event.path,
       availableEndpoints: [
         '/.netlify/functions/health',
-        '/.netlify/functions/health-detailed',
-        '/.netlify/functions/diagnostics',
+        '/.netlify/functions/health-postgres',
+        '/.netlify/functions/health-detailed-postgres',
+        '/.netlify/functions/diagnostics-postgres',
         '/.netlify/functions/track',
         '/.netlify/functions/contact',
         '/.netlify/functions/admin-packages',

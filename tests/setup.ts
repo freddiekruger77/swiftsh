@@ -2,7 +2,7 @@
 // This file runs before each test suite
 
 // Set test environment variables
-process.env.NODE_ENV = 'test'
+;(process.env as any).NODE_ENV = 'test'
 process.env.NEON_DATABASE_URL = process.env.TEST_NEON_DATABASE_URL || 'postgresql://test:test@localhost:5432/test_db'
 process.env.NEON_MAX_CONNECTIONS = '5'
 process.env.NEON_IDLE_TIMEOUT = '10000'

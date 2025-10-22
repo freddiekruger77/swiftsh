@@ -7,7 +7,7 @@ import { NextApiRequest, NextApiResponse } from 'next'
 // Helper function to create mock request/response
 function createMockReqRes(method: string, body?: any, query?: any) {
   return createMocks<NextApiRequest, NextApiResponse>({
-    method,
+    method: method as any,
     body,
     query
   })

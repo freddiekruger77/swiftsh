@@ -1,7 +1,8 @@
 // Application startup configuration validation for Neon DB migration
 // Validates all required environment variables and configuration on startup
 
-import { validateNeonConfig, validateNeonEnvironment } from './configValidation'
+import { validateNeonConfig } from './neonDb'
+import { validateNeonEnvironment } from './configValidation'
 
 // Startup validation result interface
 export interface StartupValidationResult {

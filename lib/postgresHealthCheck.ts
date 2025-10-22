@@ -555,7 +555,13 @@ export const collectDatabaseDiagnostics = async (): Promise<{
   replication: any[]
   extensions: string[]
 }> => {
-  const diagnostics = {
+  const diagnostics: {
+    config: Record<string, any>
+    stats: Record<string, any>
+    locks: any[]
+    replication: any[]
+    extensions: string[]
+  } = {
     config: {},
     stats: {},
     locks: [],

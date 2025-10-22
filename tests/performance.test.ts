@@ -104,7 +104,7 @@ async function mockCreatePackageHandler(req: NextApiRequest, res: NextApiRespons
 // Helper function to create mock request/response
 function createMockReqRes(method: string, body?: any, query?: any) {
   return createMocks<NextApiRequest, NextApiResponse>({
-    method,
+    method: method as any,
     body,
     query
   })

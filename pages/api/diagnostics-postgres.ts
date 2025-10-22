@@ -5,7 +5,8 @@ import {
   getDetailedPoolMetrics,
   collectDatabaseDiagnostics 
 } from '../../lib/postgresHealthCheck'
-import { validateNeonConfig, validateNeonEnvironment } from '../../lib/configValidation'
+import { validateNeonConfig } from '../../lib/neonDb'
+import { validateNeonEnvironment } from '../../lib/configValidation'
 
 interface DiagnosticsResponse {
   timestamp: string
