@@ -1,10 +1,10 @@
 [build]
   publish = "out"
-  command = "npm run build"
+  command = "npm ci && npm run build"
 
 [build.environment]
-  NODE_VERSION = "18"
-  NPM_VERSION = "8"
+  NODE_VERSION = "20"
+  NPM_VERSION = "10"
   # Enable PostgreSQL native bindings
   PYTHON_VERSION = "3.8"
 
