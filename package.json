@@ -62,18 +62,18 @@
     "@netlify/plugin-nextjs": "^5.0.0",
     "@types/jest": "^30.0.0",
     "@types/node": "^20",
-    "@types/react": "^18",
+    "@types/react": "^18.3.26",
     "@types/react-dom": "^18",
     "@types/supertest": "^6.0.3",
     "cross-env": "^7.0.3",
     "eslint": "^8",
     "eslint-config-next": "14.0.0",
     "jest": "^30.2.0",
-    "netlify-cli": "^17.0.0",
+    "netlify-cli": "^23.9.3",
     "node-mocks-http": "^1.17.2",
     "supertest": "^7.1.4",
     "ts-jest": "^29.4.5",
-    "typescript": "^5"
+    "typescript": "^5.9.3"
   },
   "engines": {
     "node": ">=18.0.0",
