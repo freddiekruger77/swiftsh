@@ -6,7 +6,7 @@ import {
   PackageData,
   generateId,
   formatTrackingNumber
-} from '@/lib/db'
+} from '@/lib/postgresDb'
 
 type CreatePackageRequest = {
   customerName: string

@@ -1,5 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
-import { createPackage, createStatusUpdate, initDatabase, getPackageByTrackingNumber } from '@/lib/db'
+import { createPackage, createStatusUpdate, initDatabase, getPackageByTrackingNumber } from '@/lib/postgresDb'
 
 type FixResponse = {
   success: boolean

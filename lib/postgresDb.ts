@@ -25,7 +25,11 @@ export {
   isValidTrackingNumber,
   getPoolStatus,
   validateConnection,
-  closePool as closeDatabase
+  closePool as closeDatabase,
+  validatePackageDataForPostgres,
+  validateContactSubmissionForPostgres,
+  validateStatusUpdateForPostgres,
+  getDatabase
 } from './neonDb'
 
 // Database initialization for PostgreSQL

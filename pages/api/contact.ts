@@ -1,5 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
-import { createContactSubmission, initDatabase, validateContactSubmission } from '@/lib/db'
+import { createContactSubmission, initDatabase, validateContactSubmissionForPostgres as validateContactSubmission } from '@/lib/postgresDb'
 
 type ContactResponse = {
   success: boolean

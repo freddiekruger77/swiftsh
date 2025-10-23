@@ -6,7 +6,7 @@ import {
   initDatabase,
   PackageData,
   ContactSubmission 
-} from '@/lib/db'
+} from '@/lib/postgresDb'
 
 type AdminPackagesResponse = {
   success: boolean

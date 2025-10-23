@@ -1,5 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
-import { initDatabase } from '@/lib/db'
+import { initDatabase } from '@/lib/postgresDb'
 import { initializeProductionDatabase } from '@/lib/dbInit'
 
 type InitResponse = {

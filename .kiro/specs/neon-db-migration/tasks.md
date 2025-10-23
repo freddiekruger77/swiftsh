@@ -115,7 +115,11 @@
     - _Requirements: 1.4, 5.2, 5.3_
 
 - [ ] 8. Update application to use PostgreSQL by default
-  - [ ] 8.1 Update main database import to use PostgreSQL
+  - [x] 8.1 Update main database import to use PostgreSQL
+
+
+
+
     - Modify lib/db.ts to import from postgresDb instead of SQLite operations
     - Update all API endpoints to use PostgreSQL database layer
     - Ensure backward compatibility during transition period

@@ -1,5 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
-import { getAllPackages, getDatabase } from '@/lib/db'
+import { getAllPackages, getDatabase } from '@/lib/postgresDb'
 
 type DebugResponse = {
   success: boolean

@@ -1,5 +1,5 @@
 // Script to create a new shipment with the provided details
-import { createPackage, createStatusUpdate, initDatabase } from '../lib/db'
+import { createPackage, createStatusUpdate, initDatabase } from '../lib/postgresDb'
 
 async function createShipment() {
   try {
